@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <title>STARMEDIA DRTTEA TV</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <style>
+    html, body {
+      margin: 0;
+      height: 100%;
+      background: black;
+      overflow: hidden;
+    }
+    #playerWrapper {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      background: black;
+    }
+    video {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      pointer-events: none;
+    }
+    /* Pulsante audio grande e centrato */
+    #muteBtn {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 32px;
+      font-family: sans-serif;
+      padding: 20px 40px;
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      z-index: 20;
+      display: none;
+      pointer-events: auto;
+    }
+  </style>
+</head>
+<body>
+
+<div id="playerWrapper">
+  <video id="vid" autoplay muted playsinline loop>
+    <source src="https://uc4b7eb49cb79fd33e6a546e61f5.dl.dropboxusercontent.com/cd/0/inline/Cq9bPo68rKjlxzcRjhJ6027z5m46vflZiebBhYBGrv8GN_yDxfN1PIeT7KNkFWD3jA811F7LCSiofR-FSg4bVXjBE2BKJL6NgCISMfiAZLx5X28y6Alm0HyqNItNl_T--MRj8UZ5SnboIO0v0mM3zxUZ/file#" type="video/mp4" />
+  </video>
+  <button id="muteBtn">Attiva audio</button>
+</div>
+
+<script>
+  const video = document.getElementById('vid');
+  const muteBtn = document.getElementById('muteBtn');
+  const playerWrapper = document.getElementById('playerWrapper');
+
+  // Inizia da punto casuale
+  video.addEventListener('loadedmetadata', () => {
+    video.currentTime = Math.random() * video.duration;
+  });
+
+  // Funzione per mostrare/nascondere i controlli
+  let hideTimer;
+  function showControls() {
+    muteBtn.style.display = 'block';
+    clearTimeout(hideTimer);
+    hideTimer = setTimeout(() => {
+      muteBtn.style.display = 'none';
+    }, 3000);
+  }
+
+  // Listener click sul wrapper (funziona sia in fullscreen che normale)
+  playerWrapper.addEventListener('click', showControls);
+
+  // Pulsante mute
+  muteBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    video.muted = !video.muted;
+    muteBtn.textContent = video.muted ? 'Attiva audio' : 'Disattiva audio';
+  });
+
+  // Blocca tasto destro e shortcut per saltare
+  document.addEventListener('contextmenu', e => e.preventDefault());
+  document.addEventListener('keydown', e => {
+    const block = [" ", "ArrowRight", "ArrowLeft", "F12"];
+    if (block.includes(e.key) || (e.ctrlKey && e.shiftKey && e.key === "I")) {
+      e.preventDefault();
+    }
+  });
+
+  // Disabilita il double-tap to seek su mobile
+  let lastTap = 0;
+  video.addEventListener('touchend', (e) => {
+    const currentTime = new Date().getTime();
+    const tapLength = currentTime - lastTap;
+    if (tapLength < 300 && tapLength > 0) {
+      e.preventDefault(); // Previene il doppio tap
+    }
+    lastTap = currentTime;
+  });
+
+  // Disabilita zoom e gesture multitouch (Safari)
+  document.addEventListener('gesturestart', e => e.preventDefault());
+  document.addEventListener('gesturechange', e => e.preventDefault());
+  document.addEventListener('gestureend', e => e.preventDefault());
+</script>
+
+</body>
