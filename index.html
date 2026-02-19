@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <title>STARMEDIA DIRETTA TV</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
   <style>
     html, body {
       margin: 0;
@@ -26,6 +25,7 @@
       object-fit: contain;
       pointer-events: none;
     }
+    /* Pulsante audio grande e centrato */
     #muteBtn {
       position: absolute;
       top: 50%;
@@ -48,7 +48,9 @@
 <body>
 
 <div id="playerWrapper">
-  <video id="vid" autoplay muted playsinline></video>
+  <video id="vid" autoplay muted playsinline loop>
+    <source src="https://dl.dropboxusercontent.com/scl/fi/kuxe64rrbepdt40qb3lsy/STARMEDIAPLAYOUT.mp4?rlkey=ib1q86oyr511mtohw3dfju1sj&st=ni7nfi4a&dl=0" type="video/mp4" />
+  </video>
   <button id="muteBtn">Attiva audio</button>
 </div>
 
@@ -57,22 +59,12 @@
   const muteBtn = document.getElementById('muteBtn');
   const playerWrapper = document.getElementById('playerWrapper');
 
-  const streamUrl = "https://euc13.playlist.ttvnw.net/v1/playlist/CsgGV7ggCtCgB8W2HMNCefnR6QNikL96SxL5krAqp46vdMNosRsTSKcS7UtjeQvB1WXfig_mmgi2F8Av764hI_s-QFRSE7mu8dZgHYVq1-zYme1SiUsS1T2BY7PksN_nRvoMMFrRbtwj9sV_96qWfuricVGR60-WPcZXCi03UUO5Cn1X-32Lqb5f8GGPTJwYyR7pjyJQTlloDGeSt0piuWy74ZeogQUkUc0Op2lr-YdtIEmatV6YZS94qxbZazvwYVS8OZMgnNaG5V1gsOCQvLhx-mTELirIo16Y_y0ydTUpATJD6fzrM9VCb40u-6j3MREG-hczwsTBuRTDpwEegJ0q1gU138-vlWabV9IgUyuYmxU9xGy5cw42OFSu8Y7YPk3mgVALqSck99YB823RqgFt55PzlwCfpMlTB1Z-FN0aX65nC3LGPubRpC0i_GvTWlz5s1icdYYUzGktzoIkKtSXaB86KaxJZ3AF4A-L-5_E2UaUgbfc6b9B19a47N5kTiClYtRw8WRZKJtFuJ8_0jjExz3iradpITeurAX8D9mH_FKc8P2L8yAE1B13P-wJAWqQeBvFOBnz_E1DubE7o1umcdOi0VE18Dw0o1l7xIXLOlBShf0GkklvsNiVQSfRQO8HtKgIX61hARW4VBCUlIs7FsT7u_guPOFU3kDYWEpYXTFkYjdNMYk__NaMOyOuHw16s85GOF4Yq-IyIPOpY2TSEtjDIznN9-RWZmD89ANfCA_FSQ_ni1P78rGQkQ-HIaxhzuSGvytMr-bugxMjhZMdsLNbTy9ru_2iuDMP91Lk6xv8YLLYJFZm4SdkNd0D0GG1XF7m4qfadhlOAASSD2SMmain4IEhT3nFYM64dwvH43D1LSRWnS0gSlPajyramJKndp1jWGEmWYGDZIA6dBmEs-nv8fMZVFT1dHxmo8u3TbofACZOLZCnif25YXlenKWY5HL-FElMBsUgJPL6gKPbQAkeaiFHBTz00TrhDSc6xmCvi6WSDkAJMv8EsvF3_M4vokFghOKH32LkjytoQEcHSKeVqs-JEj6d1arxV8KMQWUkwn5Hus3PwWtnvSy2a9OZywtxSPdjSGmGz6sNKdbz2fEkn0rQwbaIGgylpnmL1vpTasNcTXwgASoJZXUtd2VzdC0yMLwO.m3u8";
+  // Inizia da punto casuale
+  video.addEventListener('loadedmetadata', () => {
+    video.currentTime = Math.random() * video.duration;
+  });
 
-  // Supporto HLS
-  if (video.canPlayType('application/vnd.apple.mpegurl')) {
-    // Safari
-    video.src = streamUrl;
-  } else if (Hls.isSupported()) {
-    // Altri browser
-    const hls = new Hls();
-    hls.loadSource(streamUrl);
-    hls.attachMedia(video);
-  } else {
-    alert("Il tuo browser non supporta lo streaming HLS");
-  }
-
-  // Mostra/nasconde pulsante audio
+  // Funzione per mostrare/nascondere i controlli
   let hideTimer;
   function showControls() {
     muteBtn.style.display = 'block';
@@ -82,15 +74,17 @@
     }, 3000);
   }
 
+  // Listener click sul wrapper (funziona sia in fullscreen che normale)
   playerWrapper.addEventListener('click', showControls);
 
+  // Pulsante mute
   muteBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     video.muted = !video.muted;
     muteBtn.textContent = video.muted ? 'Attiva audio' : 'Disattiva audio';
   });
 
-  // Blocca tasto destro e shortcut
+  // Blocca tasto destro e shortcut per saltare
   document.addEventListener('contextmenu', e => e.preventDefault());
   document.addEventListener('keydown', e => {
     const block = [" ", "ArrowRight", "ArrowLeft", "F12"];
@@ -99,21 +93,21 @@
     }
   });
 
-  // Disabilita doppio tap su mobile
+  // Disabilita il double-tap to seek su mobile
   let lastTap = 0;
   video.addEventListener('touchend', (e) => {
     const currentTime = new Date().getTime();
     const tapLength = currentTime - lastTap;
     if (tapLength < 300 && tapLength > 0) {
-      e.preventDefault();
+      e.preventDefault(); // Previene il doppio tap
     }
     lastTap = currentTime;
   });
 
+  // Disabilita zoom e gesture multitouch (Safari)
   document.addEventListener('gesturestart', e => e.preventDefault());
   document.addEventListener('gesturechange', e => e.preventDefault());
   document.addEventListener('gestureend', e => e.preventDefault());
 </script>
 
 </body>
-</html>
